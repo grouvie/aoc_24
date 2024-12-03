@@ -83,13 +83,8 @@ fn parse_mul_calls_with_conditions(input: &str) -> (&str, Vec<(isize, isize)>) {
     (remaining_input, results)
 }
 
-fn process_results(results: Vec<(isize, isize)>) -> isize {
-    let mut total = 0;
-    for (x, y) in results {
-        // println!("Found: {} and {}", x, y);
-        total += x * y;
-    }
-    total
+fn process_results(results: &[(isize, isize)]) -> isize {
+    results.iter().map(|(x, y)| x * y).sum()
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -99,7 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if results_without_logic.is_empty() {
         eprintln!("No valid 'mul' calls found in the input without do/don't logic.");
     } else {
-        let total_without_logic = process_results(results_without_logic);
+        let total_without_logic = process_results(&results_without_logic);
         println!(
             "The total result of all multiplications (without do/don't logic) is: {total_without_logic:>15}"
         );
@@ -109,7 +104,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if results_with_logic.is_empty() {
         eprintln!("No valid 'mul' calls found in the input with do/don't logic.");
     } else {
-        let total_with_logic = process_results(results_with_logic);
+        let total_with_logic = process_results(&results_with_logic);
         println!(
             "The total result of all enabled multiplications (with do/don't logic) is: {total_with_logic:>10}"
         );
