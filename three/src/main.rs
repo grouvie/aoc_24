@@ -1,37 +1,32 @@
-use nom::{
-    bytes::complete::tag,
-    character::complete::{char, digit1, space0},
-    combinator::map,
-    sequence::preceded,
-    IResult,
-};
 use std::{error::Error, fs};
+use winnow::{
+    ascii::digit1,
+    error::InputError,
+    token::{literal, one_of},
+    IResult, PResult, Parser,
+};
 
-fn parse_number(input: &str) -> IResult<&str, isize> {
-    map(digit1, |string: &str| string.parse::<isize>().unwrap())(input)
+fn parse_number<'str>(input: &mut &'str str) -> PResult<isize, InputError<&'str str>> {
+    digit1.try_map(str::parse).parse_next(input)
 }
 
 fn parse_mul(input: &str) -> IResult<&str, (isize, isize)> {
-    let (input, _) = preceded(space0, tag("mul"))(input)?;
-    let (input, _) = preceded(space0, char('('))(input)?;
-    let (input, x) = parse_number(input)?;
-    let (input, _) = preceded(space0, char(','))(input)?;
-    let (input, y) = parse_number(input)?;
-    let (input, _) = preceded(space0, char(')'))(input)?;
+    let (input, _) = literal("mul").parse_peek(input)?;
+    let (input, _) = one_of('(').parse_peek(input)?;
+    let (input, x) = parse_number.parse_peek(input)?;
+    let (input, _) = one_of(',').parse_peek(input)?;
+    let (input, y) = parse_number.parse_peek(input)?;
+    let (input, _) = one_of(')').parse_peek(input)?;
     Ok((input, (x, y)))
 }
 
 fn parse_do(input: &str) -> IResult<&str, bool> {
-    let (input, _) = preceded(space0, tag("do"))(input)?;
-    let (input, _) = preceded(space0, char('('))(input)?;
-    let (input, _) = preceded(space0, char(')'))(input)?;
+    let (input, _) = literal("do()").parse_peek(input)?;
     Ok((input, true))
 }
 
 fn parse_dont(input: &str) -> IResult<&str, bool> {
-    let (input, _) = preceded(space0, tag("don't"))(input)?;
-    let (input, _) = preceded(space0, char('('))(input)?;
-    let (input, _) = preceded(space0, char(')'))(input)?;
+    let (input, _) = literal("don't()").parse_peek(input)?;
     Ok((input, false))
 }
 
