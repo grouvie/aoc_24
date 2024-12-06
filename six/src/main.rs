@@ -20,12 +20,24 @@ impl Direction {
         }
     }
 
-    fn move_position(self, current_position: (usize, usize)) -> (usize, usize) {
+    fn move_position(self, current_position: (usize, usize)) -> Option<(usize, usize)> {
         match self {
-            Direction::Up => (current_position.0.wrapping_sub(1), current_position.1),
-            Direction::Down => (current_position.0.wrapping_add(1), current_position.1),
-            Direction::Left => (current_position.0, current_position.1.wrapping_sub(1)),
-            Direction::Right => (current_position.0, current_position.1.wrapping_add(1)),
+            Direction::Up => current_position
+                .0
+                .checked_sub(1)
+                .map(|x| (x, current_position.1)),
+            Direction::Down => current_position
+                .0
+                .checked_add(1)
+                .map(|x| (x, current_position.1)),
+            Direction::Left => current_position
+                .1
+                .checked_sub(1)
+                .map(|y| (current_position.0, y)),
+            Direction::Right => current_position
+                .1
+                .checked_add(1)
+                .map(|y| (current_position.0, y)),
         }
     }
 }
@@ -55,10 +67,24 @@ fn main() {
 
     let duration = start_time.elapsed();
     println!(
-            "It took {} seconds and {} milliseconds to find positions that force the guard to walk in a circle",
-            duration.as_secs(),
-            duration.subsec_millis()
-        );
+        "It took {} seconds and {} milliseconds to find positions that force the guard to walk in a circle",
+        duration.as_secs(),
+        duration.subsec_millis()
+    );
+}
+
+fn find_guard(grid: &[Vec<char>]) -> (usize, usize) {
+    grid.par_iter()
+        .enumerate()
+        .find_map_any(|(row_index, row)| {
+            row.par_iter()
+                .enumerate()
+                .find_map_any(|(col_index, &cell)| match cell {
+                    '^' | 'v' | '<' | '>' => Some((row_index, col_index)),
+                    _ => None,
+                })
+        })
+        .expect("Guard not found in the grid!")
 }
 
 fn find_visited_positions(
@@ -71,12 +97,10 @@ fn find_visited_positions(
     let mut current_position = start_position;
     let mut current_direction = Direction::Up;
 
-    loop {
-        let next_position = current_direction.move_position(current_position);
-
-        // Check if out of bounds
+    while let Some(next_position) = current_direction.move_position(current_position) {
+        // Check if next_position is out of bounds
         if next_position.0 >= grid.len() || next_position.1 >= grid[0].len() {
-            break;
+            break; // Stop the loop if out of bounds
         }
 
         // Check for obstacle
@@ -142,20 +166,6 @@ fn find_circle_obstacle_positions(
 }
 */
 
-fn find_guard(grid: &[Vec<char>]) -> (usize, usize) {
-    grid.par_iter()
-        .enumerate()
-        .find_map_any(|(row_index, row)| {
-            row.par_iter()
-                .enumerate()
-                .find_map_any(|(col_index, &cell)| match cell {
-                    '^' | 'v' | '<' | '>' => Some((row_index, col_index)),
-                    _ => None,
-                })
-        })
-        .expect("Guard not found in the grid!")
-}
-
 fn simulate_guard(grid: &[Vec<char>], start_position: (usize, usize)) -> usize {
     let mut visited_positions = HashSet::new();
     let mut current_position = start_position;
@@ -169,12 +179,10 @@ fn simulate_guard(grid: &[Vec<char>], start_position: (usize, usize)) -> usize {
 
     visited_positions.insert((current_position, current_direction));
 
-    loop {
-        let next_position = current_direction.move_position(current_position);
-
-        // Check if out of bounds
+    while let Some(next_position) = current_direction.move_position(current_position) {
+        // Check if next_position is out of bounds
         if next_position.0 >= grid.len() || next_position.1 >= grid[0].len() {
-            break;
+            break; // Stop the loop if out of bounds
         }
 
         // Check for obstacles
