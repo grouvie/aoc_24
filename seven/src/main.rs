@@ -64,11 +64,7 @@ fn evaluate_simple_expression(parsed_line: Option<(isize, Vec<isize>)>) -> Optio
                 };
             }
 
-            if current_result == target_value {
-                Some(target_value)
-            } else {
-                None
-            }
+            (current_result == target_value).then_some(target_value)
         })
 }
 
@@ -99,10 +95,6 @@ fn evaluate_complex_expression(parsed_line: Option<(isize, Vec<isize>)>) -> Opti
                 };
             }
 
-            if current_result == target_value {
-                Some(target_value)
-            } else {
-                None
-            }
+            (current_result == target_value).then_some(target_value)
         })
 }
