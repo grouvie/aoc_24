@@ -1,7 +1,11 @@
+use std::time::Instant;
+
 use rayon::prelude::*;
 
 fn main() {
-    let input_data = include_str!("../input.txt");
+    let start_time = Instant::now();
+
+    let input_data = include_str!("../sample.txt");
 
     let total_simple_result: isize = input_data
         .lines()
@@ -18,6 +22,13 @@ fn main() {
     println!("Total simple result: {total_simple_result}");
 
     println!("Total complex result: {total_complex_result}");
+
+    let duration = start_time.elapsed();
+    println!(
+        "It took {} seconds and {} milliseconds to evaluate the expressions",
+        duration.as_secs(),
+        duration.subsec_millis()
+    );
 }
 
 fn parse_line(line: &str) -> Option<(isize, Vec<isize>)> {
