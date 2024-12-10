@@ -118,7 +118,7 @@ fn dfs(
 }
 
 fn main() {
-    let input_data = include_str!("../input.txt");
+    let input_data = include_str!("../sample.txt");
     let map: Vec<&str> = input_data.lines().collect();
 
     let total_score = calculate_total_score(&map);
