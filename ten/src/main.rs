@@ -1,21 +1,25 @@
 use pathfinding::prelude::bfs_reach;
-use std::collections::{HashSet, VecDeque};
+use rayon::prelude::*;
+use std::{
+    collections::{HashSet, VecDeque},
+    time::Instant,
+};
 
 const DIRECTIONS: [(isize, isize); 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)]; // right, down, left, up
 
 fn calculate_total_score(map: &[&str]) -> usize {
-    map.iter()
+    map.par_iter() // Use par_iter for parallel iteration
         .enumerate()
-        .flat_map(|(y, row)| {
+        .flat_map_iter(|(y, row)| {
             row.chars()
                 .enumerate()
                 .filter(|&(_x, cell)| cell == '0')
-                .map(move |(x, _cell)| reachable_nines(map, (x, y)))
+                .map(move |(x, _cell)| reachable_nines(map, &[(x, y)]))
         })
         .sum()
 }
 
-fn reachable_nines(map: &[&str], start: (usize, usize)) -> usize {
+fn reachable_nines(map: &[&str], starts: &[(usize, usize)]) -> usize {
     let successors = |&(x, y): &(usize, usize)| {
         let current_height = map[y].chars().nth(x).unwrap().to_digit(10).unwrap() as isize;
 
@@ -42,17 +46,26 @@ fn reachable_nines(map: &[&str], start: (usize, usize)) -> usize {
         })
     };
 
-    let reachable_nodes: HashSet<(usize, usize)> = bfs_reach(start, successors).collect();
-    reachable_nodes
-        .iter()
-        .filter(|&&(x, y)| map[y].chars().nth(x).unwrap() == '9')
-        .count()
+    // Use Rayon to process each starting point in parallel
+    let reachable_counts: Vec<usize> = starts
+        .par_iter()
+        .map(|&start| {
+            let reachable_nodes: HashSet<(usize, usize)> = bfs_reach(start, successors).collect();
+            reachable_nodes
+                .iter()
+                .filter(|&&(x, y)| map[y].chars().nth(x).unwrap() == '9')
+                .count()
+        })
+        .collect();
+
+    // Sum the counts of reachable '9's from all starting points
+    reachable_counts.into_iter().sum()
 }
 
 fn calculate_total_rating(map: &[&str]) -> usize {
-    map.iter()
+    map.par_iter() // Use par_iter for parallel iteration over rows
         .enumerate()
-        .flat_map(|(y, row)| {
+        .flat_map_iter(|(y, row)| {
             row.chars()
                 .enumerate()
                 .filter(|&(_x, cell)| cell == '0')
@@ -118,6 +131,7 @@ fn dfs(
 }
 
 fn main() {
+    let start_time = Instant::now();
     let input_data = include_str!("../sample.txt");
     let map: Vec<&str> = input_data.lines().collect();
 
@@ -126,4 +140,12 @@ fn main() {
 
     println!("Total score: {}", total_score);
     println!("Total rating: {}", total_rating);
+
+    let duration = start_time.elapsed();
+    println!(
+        "It took {} seconds, {} milliseconds, and {} nanoseconds to calculate the checksum",
+        duration.as_secs(),
+        duration.subsec_millis(),
+        duration.subsec_nanos() % 1_000_000
+    );
 }
