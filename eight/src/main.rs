@@ -117,9 +117,9 @@ fn find_antinodes_rule1(
     positions: &[(usize, usize)],
 ) -> HashSet<(usize, usize)> {
     positions
-        .iter()
+        .par_iter()
         .enumerate()
-        .flat_map(|(i, &(x1, y1))| {
+        .flat_map_iter(|(i, &(x1, y1))| {
             positions.iter().skip(i + 1).map(move |&(x2, y2)| {
                 let dx = x2 as isize - x1 as isize;
                 let dy = y2 as isize - y1 as isize;
@@ -136,7 +136,7 @@ fn find_antinodes_rule1(
                 valid_antinode1.into_iter().chain(valid_antinode2)
             })
         })
-        .flatten()
+        .flatten_iter()
         .collect()
 }
 
