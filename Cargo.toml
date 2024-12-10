@@ -1,5 +1,16 @@
 [workspace]
-members = ["one", "two", "three", "four", "five", "six", "seven", "eight"]
+members = [
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+]
 resolver = "2"
 
 [workspace.package]
@@ -7,6 +18,8 @@ resolver = "2"
 [workspace.metadata]
 
 [workspace.dependencies]
+
+[workspace.dev-dependencies]
 
 
 [workspace.lints.rust]

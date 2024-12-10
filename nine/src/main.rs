@@ -174,29 +174,25 @@ impl Disk {
     }
 
     fn compute_checksum(&self) -> usize {
-        let mut current_index = 0; // Initialize a variable to track the current index
-        let mut contributions: Vec<usize> = Vec::new(); // Vector to hold contributions
+        let mut current_index = 0;
+        let mut contributions: Vec<usize> = Vec::new();
 
-        // Iterate over blocks and collect contributions
         for block in &self.blocks {
             match block {
                 Block::File(File { id, size }) => {
-                    // For each file block, calculate contributions for each offset
                     for offset in 0..*size {
                         let contribution = (current_index + offset) * id;
-                        contributions.push(contribution); // Collect contribution
+                        contributions.push(contribution);
                     }
-                    current_index += size; // Increment index by the size of the file block
+                    current_index += size;
                 }
                 Block::Space(Space { size }) => {
-                    // Spaces contribute 0 to the checksum, but we still increment the index
-                    current_index += size; // Increment index for the space block
+                    current_index += size;
                 }
             }
         }
 
-        // Sum contributions in parallel
-        contributions.par_iter().sum() // Return the total checksum
+        contributions.par_iter().sum()
     }
 
     fn _display(&self) -> String {
@@ -236,7 +232,7 @@ fn main() {
 
     let duration = start_time.elapsed();
     println!(
-        "It took {} seconds, {} milliseconds, and {} nanoseconds to calculate the antinodes",
+        "It took {} seconds, {} milliseconds, and {} nanoseconds to calculate the checksum",
         duration.as_secs(),
         duration.subsec_millis(),
         duration.subsec_nanos() % 1_000_000
